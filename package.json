@@ -1,0 +1,20 @@
+{
+  "name": "kms-tafka-v1",
+  "version": "0.1.0",
+  "description": "Key management system for private cloud storage uses.",
+  "homepage": "https://github.com/Tafka-4/kms#readme",
+  "bugs": {
+    "url": "https://github.com/Tafka-4/kms/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tafka-4/kms.git"
+  },
+  "license": "BSD-3-Clause",
+  "author": "Tafka4",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
