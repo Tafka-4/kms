@@ -112,7 +112,10 @@ export const openapiSpec = {
                         },
                     },
                 },
-                responses: { '200': { description: 'Ciphertext with iv and tag' } },
+                responses: {
+                    '200': { description: 'Ciphertext with iv and tag' },
+                    '429': { description: 'Rate limited', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
+                },
             },
         },
         '/crypto/decrypt': {
@@ -137,14 +140,17 @@ export const openapiSpec = {
                         },
                     },
                 },
-                responses: { '200': { description: 'Plaintext base64' } },
+                responses: {
+                    '200': { description: 'Plaintext base64' },
+                    '429': { description: 'Rate limited', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
+                },
             },
         },
         '/keys/generate': {
             post: {
                 summary: 'Generate new data key',
                 security: [{ ClientToken: [] }],
-                responses: { '201': { description: 'Key created' } },
+                responses: { '201': { description: 'Key created' }, '429': { description: 'Rate limited' } },
             },
         },
         '/keys/rotate': {
@@ -155,7 +161,7 @@ export const openapiSpec = {
                     required: true,
                     content: { 'application/json': { schema: { type: 'object', properties: { keyId: { type: 'string' } }, required: ['keyId'] } } },
                 },
-                responses: { '200': { description: 'Rotated' } },
+                responses: { '200': { description: 'Rotated' }, '429': { description: 'Rate limited' } },
             },
         },
         '/keys/{keyId}': {
@@ -163,7 +169,7 @@ export const openapiSpec = {
                 summary: 'Get key metadata',
                 security: [{ ClientToken: [] }],
                 parameters: [{ in: 'path', name: 'keyId', required: true, schema: { type: 'string' } }],
-                responses: { '200': { description: 'Metadata' }, '404': { description: 'Not found' } },
+                responses: { '200': { description: 'Metadata' }, '404': { description: 'Not found' }, '429': { description: 'Rate limited' } },
             },
         },
     },

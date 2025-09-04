@@ -15,6 +15,10 @@ export type AppConfig = {
     rotateRateLimitWindowMs: number;
     rotateRateLimitMax: number;
     tokenPrefix?: string;
+    cryptoRateLimitWindowMs: number;
+    cryptoRateLimitMax: number;
+    keysRateLimitWindowMs: number;
+    keysRateLimitMax: number;
 };
 
 export function loadConfig(): AppConfig {
@@ -27,11 +31,15 @@ export function loadConfig(): AppConfig {
     const sessionSliding = String(process.env.KMS_SESSION_SLIDING ?? 'true') === 'true';
     const rotateRateLimitWindowMs = Number(process.env.KMS_ROTATE_WINDOW_MS ?? 10_000);
     const rotateRateLimitMax = Number(process.env.KMS_ROTATE_MAX ?? 5);
+    const cryptoRateLimitWindowMs = Number(process.env.KMS_CRYPTO_WINDOW_MS ?? 10_000);
+    const cryptoRateLimitMax = Number(process.env.KMS_CRYPTO_MAX ?? 50);
+    const keysRateLimitWindowMs = Number(process.env.KMS_KEYS_WINDOW_MS ?? 10_000);
+    const keysRateLimitMax = Number(process.env.KMS_KEYS_MAX ?? 20);
     const tokenPrefix = process.env.KMS_TOKEN_PREFIX?.trim() || undefined;
 
     ensureKeyStorePath(keyStorePath);
 
-    return { port, whitelist, keyStorePath, nodeEnv, sessionTtlMs, sessionSliding, rotateRateLimitWindowMs, rotateRateLimitMax, tokenPrefix };
+    return { port, whitelist, keyStorePath, nodeEnv, sessionTtlMs, sessionSliding, rotateRateLimitWindowMs, rotateRateLimitMax, tokenPrefix, cryptoRateLimitWindowMs, cryptoRateLimitMax, keysRateLimitWindowMs, keysRateLimitMax };
 }
 
 function ensureKeyStorePath(dir: string) {

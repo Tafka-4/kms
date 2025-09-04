@@ -4,11 +4,21 @@ import { validateBody } from '../middleware/validate.js';
 import { requireClientToken } from '../middleware/auth.js';
 import { KeyStore } from '../store/keyStore.js';
 import { loadConfig } from '../config.js';
+import { rateLimit } from '../middleware/rateLimit.js';
 
 const cfg = loadConfig();
 const store = new KeyStore(cfg.keyStorePath);
 
 export const keysRouter = Router();
+
+// Apply rate limit per client token/ip for keys operations
+keysRouter.use(
+    rateLimit({
+        windowMs: cfg.keysRateLimitWindowMs,
+        max: cfg.keysRateLimitMax,
+        errorMessage: 'Too many key management requests',
+    })
+);
 
 keysRouter.post('/generate', requireClientToken, validateBody(z.object({})), (req, res) => {
     try {

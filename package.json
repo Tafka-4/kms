@@ -11,7 +11,7 @@
         "build": "tsc -p tsconfig.json --outDir build",
         "start": "node build/server.js",
         "lint": "echo 'No lint configured'",
-        "test": "echo 'No tests configured'",
+        "test": "npm run build && node --test build/**/*.test.js",
         "test:client": "ts-node --esm client/testClient.ts"
     },
     "dependencies": {

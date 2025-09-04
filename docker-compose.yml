@@ -9,6 +9,9 @@ services:
             - KMS_WHITELIST=0.0.0.0/0
             - KEY_STORE_PATH=/data/keys
             - NODE_ENV=development
+            - KMS_CRYPTO_MAX=2
+            - KMS_KEYS_MAX=2
+            - KMS_ROTATE_MAX=1
         volumes:
             - kms-data:/data
 
@@ -20,7 +23,8 @@ services:
             - kms
         environment:
             - BASE_URL=http://kms:3000
-            - TOKEN=demo-client-token
+            - TOKEN=aaaaaaaaaaaaaaaaaaaaaaaaaa
+            - NEGATIVE_TESTS=true
         volumes:
             - .:/work:rw
         command: >-

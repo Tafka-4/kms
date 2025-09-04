@@ -4,22 +4,56 @@ import { validateBody } from '../middleware/validate.js';
 import { requireClientToken } from '../middleware/auth.js';
 import { aesGcmDecrypt, aesGcmEncrypt } from '../crypto/aes.js';
 import { Algorithm } from '../types.js';
+import { isBase64 } from '../utils/validation.js';
+import { rateLimit } from '../middleware/rateLimit.js';
+import { loadConfig } from '../config.js';
+
+const cfg = loadConfig();
 
 const encryptSchema = z.object({
     algorithm: z.literal('AES-256-GCM'),
-    plaintext: z.string().min(1), // base64
-    aad: z.string().optional(), // base64
+    plaintext: z
+        .string()
+        .min(1)
+        .max(131072, 'Plaintext too large')
+        .refine(isBase64, 'Invalid base64 plaintext'),
+    aad: z
+        .string()
+        .max(8192, 'AAD too large')
+        .refine((v) => isBase64(v), 'Invalid base64 AAD')
+        .optional(),
 });
 
 const decryptSchema = z.object({
     algorithm: z.literal('AES-256-GCM'),
-    ciphertext: z.string().min(1), // base64
-    iv: z.string().min(1), // base64 (12 bytes)
-    tag: z.string().min(1), // base64 (16 bytes)
-    aad: z.string().optional(), // base64
+    ciphertext: z.string().min(1).refine(isBase64, 'Invalid base64 ciphertext'),
+    iv: z
+        .string()
+        .min(1)
+        .refine(isBase64, 'Invalid base64 IV')
+        .refine((s) => Buffer.from(s, 'base64').length === 12, 'IV must be 12 bytes'),
+    tag: z
+        .string()
+        .min(1)
+        .refine(isBase64, 'Invalid base64 tag')
+        .refine((s) => Buffer.from(s, 'base64').length === 16, 'Tag must be 16 bytes'),
+    aad: z
+        .string()
+        .max(8192, 'AAD too large')
+        .refine((v) => isBase64(v), 'Invalid base64 AAD')
+        .optional(),
 });
 
 export const cryptoRouter = Router();
+
+// Apply rate limit per client token/ip for crypto operations
+cryptoRouter.use(
+    rateLimit({
+        windowMs: cfg.cryptoRateLimitWindowMs,
+        max: cfg.cryptoRateLimitMax,
+        errorMessage: 'Too many crypto requests',
+    })
+);
 
 cryptoRouter.post('/encrypt', requireClientToken, validateBody(encryptSchema), (req, res) => {
     const session = (req as any).session as { key: Buffer };

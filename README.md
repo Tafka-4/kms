@@ -41,6 +41,8 @@ npm start
 - Ed25519 helpers are provided for optional audit signing.
 - IP whitelist: enforced globally; app is proxy-aware with restricted trust proxy. Set `KMS_WHITELIST` appropriately for your network.
 - Production: Always run behind TLS (HTTPS). This demo crypto layer complements but does not replace TLS.
+- Key exchange hardening: RSA-OAEP unwrap binds to `{sessionId}:{token}` as OAEP label when possible. Legacy clients without a label remain supported.
+ - Header validation: `X-Client-Token` is validated consistently across routes (base64url body with optional server prefix); `X-Request-Id` is validated and echoed.
 
 ## Key Management
 
@@ -67,6 +69,16 @@ Notes:
 - Ensure `KMS_WHITELIST` includes your client IP (or permissive for local).
 - The keystore path is created if missing; the process exits non-zero if not writable.
 
+### Docker E2E
+
+Docker Compose runs the KMS and the E2E client (with both positive and negative tests):
+
+```bash
+docker compose up --build --abort-on-container-exit
+```
+
+Compose config sets low rate limits for predictable 429s and uses a valid demo token.
+
 ## Configuration
 
 - `KMS_PORT` (default `3000`)
@@ -77,6 +89,8 @@ Notes:
 - `KMS_ROTATE_WINDOW_MS` (default `10000`)
 - `KMS_ROTATE_MAX` (default `5`)
 - `KMS_TOKEN_PREFIX` (optional, prepended to issued tokens)
+- `KMS_CRYPTO_WINDOW_MS` (default `10000`) and `KMS_CRYPTO_MAX` (default `50`) for `/crypto/*` rate limiting
+- `KMS_KEYS_WINDOW_MS` (default `10000`) and `KMS_KEYS_MAX` (default `20`) for `/keys/*` rate limiting
 - Security headers are enabled by default (HSTS in production behind HTTPS).
 - Background GC removes expired sessions periodically.
 
@@ -92,10 +106,13 @@ Client:
 - AES-256-GCM with random IV, auth tag, optional AAD
 - RSA-OAEP(SHA-256) for wrapping session key
 - Session token format validation, rotation endpoint with rate limiting
+- Request rate limiting for `/crypto/*` and `/keys/*` endpoints (429 with `Retry-After`)
 - Sliding expiration configurable for sessions
 - Request/response structured logging and audit events (key-exchange, rotate)
 - Local filesystem keystore uses atomic writes
 - Trust proxy restricted to local networks
+- Request IDs: every response includes `X-Request-Id` and logs include `requestId` for traceability
+ - Header validation: `X-Client-Token` format and `X-Request-Id` shape validated
 
 ## Development
 
@@ -111,4 +128,4 @@ npx tsc --noEmit
 
 - In-memory sessions (single-process). Use a shared store for horizontal scaling.
 - Local filesystem key storage for demo only; integrate an HSM/secret manager for production.
-
+ - Rate limiting is in-memory and per-process; use a shared rate-limiter for multi-instance deployments.

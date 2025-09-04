@@ -6,6 +6,8 @@ import { validateBody } from '../middleware/validate.js';
 import { loadConfig } from '../config.js';
 import { rsaOaepUnwrap } from '../crypto/rsa.js';
 import { rateLimitRotate } from '../middleware/rateLimit.js';
+import { isBase64 } from '../utils/validation.js';
+import { requireValidClientTokenHeader } from '../middleware/headers.js';
 
 const cfg = loadConfig();
 const { privateKey, publicKeyPem } = loadOrCreateRsaKeyPair(cfg.keyStorePath);
@@ -19,15 +21,27 @@ sessionRouter.get('/init', (req, res) => {
 
 const keyExchangeSchema = z.object({
     sessionId: z.string().min(1),
-    wrappedKey: z.string().min(1), // base64
+    wrappedKey: z
+        .string()
+        .min(1)
+        .max(4096)
+        .refine(isBase64, 'Invalid base64 for wrappedKey'),
 });
 
-sessionRouter.post('/key-exchange', validateBody(keyExchangeSchema), (req, res) => {
+sessionRouter.post('/key-exchange', requireValidClientTokenHeader, validateBody(keyExchangeSchema), (req, res) => {
     const token = String(req.header('X-Client-Token') || '');
     if (!token) return res.status(401).json({ error: { code: 'UNAUTHORIZED', message: 'Missing X-Client-Token' } });
     const { sessionId, wrappedKey } = req.body as z.infer<typeof keyExchangeSchema>;
     try {
-        const key = rsaOaepUnwrap(privateKey, wrappedKey);
+        // Bind OAEP to session + token via label, with backward-compatible fallback
+        const label = Buffer.from(`${sessionId}:${token}`);
+        let key: Buffer;
+        try {
+            key = rsaOaepUnwrap(privateKey, wrappedKey, label);
+        } catch (_e) {
+            // Fallback: try without label for legacy clients
+            key = rsaOaepUnwrap(privateKey, wrappedKey);
+        }
         if (key.length !== 32) throw new Error('Session key must be 32 bytes');
         const rec = sessions.upsert(sessionId, token, key);
         // eslint-disable-next-line no-console

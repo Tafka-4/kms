@@ -37,24 +37,26 @@ export function loadOrCreateRsaKeyPair(storeDir: string) {
     };
 }
 
-export function rsaOaepUnwrap(privateKey: crypto.KeyObject, wrappedKeyB64: string): Buffer {
+export function rsaOaepUnwrap(privateKey: crypto.KeyObject, wrappedKeyB64: string, label?: Buffer): Buffer {
     const wrapped = Buffer.from(wrappedKeyB64, 'base64');
     return crypto.privateDecrypt(
         {
             key: privateKey,
             oaepHash: 'sha256',
             padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+            oaepLabel: label,
         },
         wrapped
     );
 }
 
-export function rsaOaepWrap(publicKey: crypto.KeyObject, keyData: Buffer): string {
+export function rsaOaepWrap(publicKey: crypto.KeyObject, keyData: Buffer, label?: Buffer): string {
     const wrapped = crypto.publicEncrypt(
         {
             key: publicKey,
             oaepHash: 'sha256',
             padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+            oaepLabel: label,
         },
         keyData
     );
