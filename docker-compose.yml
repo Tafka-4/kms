@@ -3,32 +3,22 @@ services:
         build: .
         container_name: personal-kms
         ports:
-            - "3000:3000"
+            - "${KMS_PORT:-3000}:${KMS_PORT:-3000}"
         environment:
-            - KMS_PORT=3000
-            - KMS_WHITELIST=0.0.0.0/0
-            - KEY_STORE_PATH=/data/keys
-            - NODE_ENV=development
-            - KMS_CRYPTO_MAX=2
-            - KMS_KEYS_MAX=2
-            - KMS_ROTATE_MAX=1
+            KMS_PORT: ${KMS_PORT:-3000}
+            KMS_WHITELIST: ${KMS_WHITELIST:-127.0.0.1,::1,172.16.0.0/12}
+            KEY_STORE_PATH: ${KEY_STORE_PATH:-/data/keys}
+            NODE_ENV: ${NODE_ENV:-development}
+            KMS_SESSION_TTL_MS: ${KMS_SESSION_TTL_MS:-900000}
+            KMS_SESSION_SLIDING: ${KMS_SESSION_SLIDING:-true}
+            KMS_TOKEN_PREFIX: ${KMS_TOKEN_PREFIX:-}
+            KMS_ROTATE_WINDOW_MS: ${KMS_ROTATE_WINDOW_MS:-10000}
+            KMS_ROTATE_MAX: ${KMS_ROTATE_MAX:-5}
+            KMS_CRYPTO_WINDOW_MS: ${KMS_CRYPTO_WINDOW_MS:-10000}
+            KMS_CRYPTO_MAX: ${KMS_CRYPTO_MAX:-50}
+            KMS_KEYS_WINDOW_MS: ${KMS_KEYS_WINDOW_MS:-10000}
+            KMS_KEYS_MAX: ${KMS_KEYS_MAX:-20}
         volumes:
             - kms-data:/data
-
-    client:
-        image: node:20-alpine
-        container_name: kms-client
-        working_dir: /work
-        depends_on:
-            - kms
-        environment:
-            - BASE_URL=http://kms:3000
-            - TOKEN=aaaaaaaaaaaaaaaaaaaaaaaaaa
-            - NEGATIVE_TESTS=true
-        volumes:
-            - .:/work:rw
-        command: >-
-            sh -c "echo 'Hello via KMS!' > /work/sample.txt && node /work/client/testE2E.mjs /work/sample.txt /work/cipher.json /work/roundtrip.txt"
-
 volumes:
     kms-data:
