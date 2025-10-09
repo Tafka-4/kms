@@ -1,4 +1,4 @@
-# Personal KMS Scaffold
+# KMS for MSA
 
 A secure-by-default KMS scaffold for a personal cloud storage system. It enforces IP whitelisting, negotiates a pre-REST AES session key via RSA-OAEP, supports token-based client identity, provides AES-256-GCM crypto endpoints, versioned data key generation/rotation, and serves OpenAPI docs.
 
@@ -112,20 +112,4 @@ Client:
 - Local filesystem keystore uses atomic writes
 - Trust proxy restricted to local networks
 - Request IDs: every response includes `X-Request-Id` and logs include `requestId` for traceability
- - Header validation: `X-Client-Token` format and `X-Request-Id` shape validated
-
-## Development
-
-- Type-check:
-
-```bash
-npx tsc --noEmit
-```
-
-- Build output is emitted to `build/`. Do not commit `build/`.
-
-## Limitations
-
-- In-memory sessions (single-process). Use a shared store for horizontal scaling.
-- Local filesystem key storage for demo only; integrate an HSM/secret manager for production.
- - Rate limiting is in-memory and per-process; use a shared rate-limiter for multi-instance deployments.
+- Header validation: `X-Client-Token` format and `X-Request-Id` shape validated
