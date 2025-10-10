@@ -13,7 +13,7 @@ npm install
 
 - Configure (optional): copy `.env.example` to `.env` and set values:
   - `KMS_PORT` (default `3000`)
-  - `KMS_WHITELIST` (CSV; default `100.64.0.9`)
+  - `KMS_WHITELIST` (CSV; default `10.64.0.0/24`)
   - `KEY_STORE_PATH` (default `./data/keys`)
   - `NODE_ENV`
 
@@ -82,7 +82,7 @@ Compose config sets low rate limits for predictable 429s and uses a valid demo t
 ## Configuration
 
 - `KMS_PORT` (default `3000`)
-- `KMS_WHITELIST` (CSV; default `100.64.0.9`)
+- `KMS_WHITELIST` (CSV; default `10.64.0.0/24`)
 - `KEY_STORE_PATH` (default `./data/keys`)
 - `KMS_SESSION_TTL_MS` (default `900000`)
 - `KMS_SESSION_SLIDING` (`true|false`, default `true`)
