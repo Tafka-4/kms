@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const DEFAULT_PORT = 3000;
-const DEFAULT_WHITELIST = "127.0.0.1/32,10.64.0.0/24";
+const DEFAULT_WHITELIST = "127.0.0.1/32,10.64.0.0/24,172.18.0.0/24";
 const DEFAULT_KEY_STORE = "./data/keys";
 
 export type AppConfig = {
