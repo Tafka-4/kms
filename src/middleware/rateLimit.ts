@@ -14,6 +14,9 @@ type RateLimitOpts = {
 
 // Create an isolated rate limiter instance (no global cross-route sharing)
 export function rateLimit(opts: RateLimitOpts) {
+  if (opts.max <= 0 || opts.windowMs <= 0) {
+    return (_req: Request, _res: Response, next: NextFunction) => next();
+  }
   const buckets = new Map<string, Bucket>();
   const keyFn = opts.keyFn ?? ((req: Request) => String(req.header('X-Client-Token') || req.ip || 'unknown'));
   const errorMessage = opts.errorMessage ?? 'Too many requests';
