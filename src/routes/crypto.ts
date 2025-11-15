@@ -10,12 +10,15 @@ import { loadConfig } from '../config.js';
 
 const cfg = loadConfig();
 
+const MAX_PLAINTEXT_BYTES = cfg.cryptoPlaintextLimitBytes;
+const MAX_PLAINTEXT_BASE64_LENGTH = Math.ceil((MAX_PLAINTEXT_BYTES / 3) * 4);
+
 const encryptSchema = z.object({
     algorithm: z.literal('AES-256-GCM'),
     plaintext: z
         .string()
         .min(1)
-        .max(131072, 'Plaintext too large')
+        .max(MAX_PLAINTEXT_BASE64_LENGTH, 'Plaintext too large')
         .refine(isBase64, 'Invalid base64 plaintext'),
     aad: z
         .string()

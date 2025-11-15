@@ -4,6 +4,8 @@ import path from "node:path";
 const DEFAULT_PORT = 3000;
 const DEFAULT_WHITELIST = "127.0.0.1/32,10.64.0.0/24,172.18.0.0/24";
 const DEFAULT_KEY_STORE = "./data/keys";
+const DEFAULT_CRYPTO_PLAINTEXT_BYTES = 10 * 1024 * 1024; // 10MB
+const MAX_CRYPTO_PLAINTEXT_BYTES = 64 * 1024 * 1024; // cap to protect the KMS
 
 export type AppConfig = {
 	port: number;
@@ -17,6 +19,7 @@ export type AppConfig = {
 	tokenPrefix?: string;
 	cryptoRateLimitWindowMs: number;
 	cryptoRateLimitMax: number;
+	cryptoPlaintextLimitBytes: number;
 	keysRateLimitWindowMs: number;
 	keysRateLimitMax: number;
 };
@@ -45,6 +48,18 @@ export function loadConfig(): AppConfig {
 		process.env.KMS_CRYPTO_WINDOW_MS ?? 10_000
 	);
 	const cryptoRateLimitMax = Number(process.env.KMS_CRYPTO_MAX ?? 50);
+	const cryptoPlaintextLimitEnv = Number(
+		process.env.KMS_CRYPTO_MAX_PLAINTEXT_BYTES ??
+			process.env.KMS_CRYPTO_PLAINTEXT_BYTES ??
+			DEFAULT_CRYPTO_PLAINTEXT_BYTES
+	);
+	const cryptoPlaintextLimitBytes =
+		Number.isFinite(cryptoPlaintextLimitEnv) && cryptoPlaintextLimitEnv > 0
+			? Math.min(
+					cryptoPlaintextLimitEnv,
+					MAX_CRYPTO_PLAINTEXT_BYTES
+			  )
+			: DEFAULT_CRYPTO_PLAINTEXT_BYTES;
 	const keysRateLimitWindowMs = Number(
 		process.env.KMS_KEYS_WINDOW_MS ?? 10_000
 	);
@@ -65,6 +80,7 @@ export function loadConfig(): AppConfig {
 		tokenPrefix,
 		cryptoRateLimitWindowMs,
 		cryptoRateLimitMax,
+		cryptoPlaintextLimitBytes,
 		keysRateLimitWindowMs,
 		keysRateLimitMax,
 	};
