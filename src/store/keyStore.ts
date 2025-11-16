@@ -37,7 +37,7 @@ export class KeyStore {
         fs.renameSync(tmp, this.filePath);
     }
 
-    generateKey(): { keyId: string; version: number; wrapped?: never } {
+    generateKey(): { keyId: string; version: number } {
         const keyId = crypto.randomUUID();
         const material = crypto.randomBytes(32).toString('base64');
         const createdAt = Date.now();
@@ -89,5 +89,16 @@ export class KeyStore {
             createdAt: rec.createdAt,
             versions: rec.versions.map(({ materialB64: _m, ...meta }) => meta),
         };
+    }
+
+    getKeyMaterial(keyId: string, version: number): Buffer | null {
+        const rec = this.cache.get(keyId);
+        if (!rec) return null;
+        const ver = rec.versions.find((v) => v.version === version);
+        if (!ver) return null;
+        if (ver.status === 'deprecated' && ver.expiresAt && ver.expiresAt <= Date.now()) {
+            return null;
+        }
+        return Buffer.from(ver.materialB64, 'base64');
     }
 }

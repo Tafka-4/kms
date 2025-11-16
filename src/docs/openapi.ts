@@ -172,5 +172,53 @@ export const openapiSpec = {
                 responses: { '200': { description: 'Metadata' }, '404': { description: 'Not found' }, '429': { description: 'Rate limited' } },
             },
         },
+        '/keys/wrap': {
+            post: {
+                summary: 'Wrap plaintext with stored key version',
+                security: [{ ClientToken: [] }],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    keyId: { type: 'string' },
+                                    version: { type: 'integer' },
+                                    plaintext: { type: 'string', description: 'base64' },
+                                },
+                                required: ['keyId', 'version', 'plaintext'],
+                            },
+                        },
+                    },
+                },
+                responses: { '200': { description: 'Wrapped ciphertext' }, '404': { description: 'Not found' } },
+            },
+        },
+        '/keys/unwrap': {
+            post: {
+                summary: 'Unwrap ciphertext with stored key version',
+                security: [{ ClientToken: [] }],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    keyId: { type: 'string' },
+                                    version: { type: 'integer' },
+                                    ciphertext: { type: 'string', description: 'base64' },
+                                    iv: { type: 'string', description: 'base64' },
+                                    tag: { type: 'string', description: 'base64' },
+                                },
+                                required: ['keyId', 'version', 'ciphertext', 'iv', 'tag'],
+                            },
+                        },
+                    },
+                },
+                responses: { '200': { description: 'Plaintext' }, '404': { description: 'Not found' } },
+            },
+        },
     },
 } as const;
